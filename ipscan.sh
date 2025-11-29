@@ -40,6 +40,14 @@ validate_interface() {
     fi
 }
 
+# Функция для сканирования IP
+scan_ip() {
+    local ip="$1"
+    local interface="$2"
+    echo "[*] Сканирование IP: $ip"
+    arping -c 3 -i "$interface" "$ip" 2> /dev/null
+}
+
 # Выполнения сканирования
 perform_scan() {
     local prefix="$1"
@@ -49,15 +57,13 @@ perform_scan() {
     
     if [[ -n "$subnet" && -n "$host" ]]; then
         # Сканирование одного IP
-        echo "[*] Сканирование IP: ${prefix}.${subnet}.${host}"
-        arping -c 3 -i "$interface" "${prefix}.${subnet}.${host}" 2> /dev/null
+             scan_single_ip "${prefix}.${subnet}.${host}" "$interface"
         
     elif [[ -n "$subnet" ]]; then
         # Сканирование одной подсети
         echo "[*] Сканирование подсети: ${prefix}.${subnet}.x"
         for HOST in {1..254}; do
-            echo "[*] IP: ${prefix}.${subnet}.${HOST}"
-            arping -c 1 -i "$interface" "${prefix}.${subnet}.${HOST}" 2> /dev/null
+             scan_single_ip "${prefix}.${subnet}.${host}" "$interface"
         done
         
     else
@@ -65,8 +71,7 @@ perform_scan() {
         echo "[*] Сканирование всей сети: ${prefix}.x.x"
         for SUBNET in {1..254}; do
             for HOST in {1..254}; do
-                echo "[*] IP: ${prefix}.${SUBNET}.${HOST}"
-                arping -c 1 -i "$interface" "${prefix}.${SUBNET}.${HOST}" 2> /dev/null
+                 scan_single_ip "${prefix}.${subnet}.${host}" "$interface"
             done
         done
     fi
