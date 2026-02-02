@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kolesov-av-netology-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      kolesov-av-my-netology-hw:
+        ipv4_address: 10.5.0.10
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    depends_on:
+      - pushgateway
+
+  pushgateway:
+    image: prom/pushgateway:latest
+    container_name: kolesov-av-netology-pushgateway
+    networks:
+      kolesov-av-my-netology-hw:
+        ipv4_address: 10.5.0.11
+    ports:
+      - "9091:9091"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kolesov-av-netology-grafana
+    volumes:
+      - ./grafana/custom.ini:/etc/grafana/grafana.ini
+      - grafana_data:/var/lib/grafana
+    networks:
+      kolesov-av-my-netology-hw:
+        ipv4_address: 10.5.0.12
+    environment:
+      - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
+    ports:
+      - "80:3000"
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  kolesov-av-my-netology-hw:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
